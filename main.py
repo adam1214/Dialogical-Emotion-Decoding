@@ -54,11 +54,16 @@ def main():
 
     bias_dict = utils.get_val_bias(spk_dialogs, emo_dict)
     print("#"*50+"\n")
+  
+  #Estimate emotion transtion probability of ALL dialogs(dictionary type)
+  emo_trans_prob_dict = utils.emo_trans_prob(emo_dict)
+  print(emo_trans_prob_dict)
+  get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(emo_dict)
 
   trace = []
   label = []
   org_pred = []
-  DED = bs.BeamSearch(p_0, args.crp_alpha, args.num_state, 
+  DED = bs.BeamSearch(p_0, emo_trans_prob_dict, args.crp_alpha, args.num_state, 
                               args.beam_size, args.test_iteration, emo_dict, out_dict)
 
   for i, dia in enumerate(dialogs):
@@ -66,6 +71,9 @@ def main():
 
     # Apply p_0 estimated from other 4 sessions.
     DED.transition_bias = bias_dict[dia[:5]] 
+
+    # Apply emo_trans_prob_dict estimated from other 4 sessions.
+    DED.emo_trans_prob_dict = get_val_emo_trans_prob_dict[dia[:5]]
     
     # Beam search decoder
     out = DED.decode(dialogs[dia]) 
@@ -94,7 +102,6 @@ def main():
   logging.info('Save results:')
   logging.info('\n%s\n', json.dumps(results, sort_keys=False, indent=4))
   json.dump(results, open(args.out_dir+'/%s.json' % args.result_file, "w"))
-
 
 if __name__ == '__main__':
     main()

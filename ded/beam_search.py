@@ -35,9 +35,10 @@ class BeamState(object):
 
 class BeamSearch(object):
 
-  def __init__(self, bias, crp_alpha, num_state, beam_size, test_iteration, emo, logits):
+  def __init__(self, bias, emo_trans_prob_dict, crp_alpha, num_state, beam_size, test_iteration, emo, logits):
     # Define parameters
     self.transition_bias = bias
+    self.emo_trans_prob_dict = emo_trans_prob_dict
     self.crp_alpha = crp_alpha
     self.num_state = num_state
     self.beam_size = beam_size
@@ -65,8 +66,7 @@ class BeamSearch(object):
     dec_step = len(test_sequence)
     t = 0
     beam_set = [BeamState([], [], 0, [0, 0, 0, 0]) for _ in range(self.beam_size)]
-    selected_beam_state = []
-    while t < dec_step and len(selected_beam_state) < self.beam_size:
+    while t < dec_step:
       utt_id = test_sequence[t]
       beam_set_bank = []
 
@@ -99,7 +99,7 @@ class BeamSearch(object):
     # Get original ce loss
     logit = np.reshape(self.all_logits[utt_id], [4,])
     loss = utils.cross_entropy(label, logit)
-
+    '''
     # RESCORING:
 
     # An existing state
@@ -124,9 +124,93 @@ class BeamSearch(object):
               np.log(sum(beam_state.block_counts) + \
               self.crp_alpha)          
       beam_state.block_counts[state] += 1
+    
+    # Find last state of this speaker
+    last_idx = utils.find_last_idx(beam_state.spk_sequence, speaker)
+    if last_idx == None: #this is speaker first utterance
+      loss -= np.log(1)
+    else:
+      #{ang, hap, neu, sad}
+      last_state = beam_state.emo_sequence[last_idx]
+      if last_state == 0 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['a2a'])
+      elif last_state == 0 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['a2h'])
+      elif last_state == 0 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['a2n'])
+      elif last_state == 0 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['a2s'])
+
+      elif last_state == 1 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['h2a'])
+      elif last_state == 1 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['h2h'])
+      elif last_state == 1 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['h2n'])
+      elif last_state == 1 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['h2s'])
+
+      elif last_state == 2 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['n2a'])
+      elif last_state == 2 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['n2h'])
+      elif last_state == 2 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['n2n'])
+      elif last_state == 2 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['n2s'])
+
+      elif last_state == 3 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['s2a'])
+      elif last_state == 3 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['s2h'])
+      elif last_state == 3 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['s2n'])
+      elif last_state == 3 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['s2s'])
+    '''
+    # Find last state of current dialog
+    if len(beam_state.emo_sequence) == 0: #first utterance of this dialog
+      loss -= np.log(1)
+    else:
+      #{ang, hap, neu, sad}
+      last_state = beam_state.emo_sequence[len(beam_state.emo_sequence)-1]
+      if last_state == 0 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['a2a'])
+      elif last_state == 0 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['a2h'])
+      elif last_state == 0 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['a2n'])
+      elif last_state == 0 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['a2s'])
+
+      elif last_state == 1 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['h2a'])
+      elif last_state == 1 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['h2h'])
+      elif last_state == 1 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['h2n'])
+      elif last_state == 1 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['h2s'])
+
+      elif last_state == 2 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['n2a'])
+      elif last_state == 2 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['n2h'])
+      elif last_state == 2 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['n2n'])
+      elif last_state == 2 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['n2s'])
+
+      elif last_state == 3 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['s2a'])
+      elif last_state == 3 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['s2h'])
+      elif last_state == 3 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['s2n'])
+      elif last_state == 3 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['s2s'])
 
     new_beam_state = beam_state.update(speaker, state, loss)
-
     return new_beam_state
 
 
