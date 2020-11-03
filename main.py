@@ -56,9 +56,11 @@ def main():
     print("#"*50+"\n")
   
   #Estimate emotion transtion probability of ALL dialogs(dictionary type)
-  emo_trans_prob_dict = utils.emo_trans_prob_without_softmax(emo_dict)
+  emo_trans_prob_dict = utils.emo_trans_prob_need_softmax(emo_dict, dialogs)
+  #emo_trans_prob_dict = utils.emo_trans_prob_without_softmax(emo_dict, dialogs)
   print(emo_trans_prob_dict)
-  get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(emo_dict, 0)
+  get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(emo_dict, dialogs, 1)
+  #get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(emo_dict, dialogs, 0)
 
   trace = []
   label = []

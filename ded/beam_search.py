@@ -124,7 +124,7 @@ class BeamSearch(object):
               np.log(sum(beam_state.block_counts) + \
               self.crp_alpha)          
       beam_state.block_counts[state] += 1
-
+    '''
     # Find last state of this speaker
     last_idx = utils.find_last_idx(beam_state.spk_sequence, speaker)
     if last_idx == None: #this is speaker first utterance
@@ -209,7 +209,7 @@ class BeamSearch(object):
         loss -= np.log(self.emo_trans_prob_dict['s2n'])
       elif last_state == 3 and state == 3:
         loss -= np.log(self.emo_trans_prob_dict['s2s'])
-
+    '''
     new_beam_state = beam_state.update(speaker, state, loss)
     return new_beam_state
 
