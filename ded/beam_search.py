@@ -59,9 +59,7 @@ class BeamSearch(object):
     Returns:
         predicted_sequence: Predicted emotion state sequence. An array of integers.
     """
-    test_sequence_length = len(dialog)
     test_sequence = np.tile(dialog, self.test_iteration)
-
     # decoding steps
     dec_step = len(test_sequence)
     t = 0
@@ -99,9 +97,8 @@ class BeamSearch(object):
     # Get original ce loss
     logit = np.reshape(self.all_logits[utt_id], [4,])
     loss = utils.cross_entropy(label, logit)
-    '''
     # RESCORING:
-
+    '''
     # An existing state
     if state in np.unique(beam_state.emo_sequence) and speaker in np.unique(beam_state.spk_sequence): 
       # Find last state
@@ -125,7 +122,8 @@ class BeamSearch(object):
               self.crp_alpha)          
       beam_state.block_counts[state] += 1
     '''
-    # Find last state of this speaker
+    '''
+    # Find last state of this speaker (Bigram)
     last_idx = utils.find_last_idx(beam_state.spk_sequence, speaker)
     if last_idx == None: #this is speaker first utterance
       loss -= np.log(1)
@@ -168,7 +166,8 @@ class BeamSearch(object):
       elif last_state == 3 and state == 3:
         loss -= np.log(self.emo_trans_prob_dict['s2s'])
     '''
-    # Find last state of current dialog
+    '''
+    # Find last state of current dialog (Bigram)
     if len(beam_state.emo_sequence) == 0: #first utterance of this dialog
       loss -= np.log(1)
     else:
@@ -210,6 +209,313 @@ class BeamSearch(object):
       elif last_state == 3 and state == 3:
         loss -= np.log(self.emo_trans_prob_dict['s2s'])
     '''
+    '''
+    # Find last and the second to last states of this speaker (Trigram)
+    last_idx = utils.find_last_idx(beam_state.spk_sequence, speaker)
+    second_to_last_idx = utils.find_second_to_last_idx(beam_state.spk_sequence, speaker)
+    if last_idx == None or second_to_last_idx == None: #this is speaker first or second utterance
+      loss -= np.log(1)
+    else:
+      #{ang, hap, neu, sad}
+      last_state = beam_state.emo_sequence[last_idx]
+      second_to_last_state = beam_state.emo_sequence[second_to_last_idx]
+      if second_to_last_state == 0 and last_state == 0 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['aaa'])
+      elif second_to_last_state == 0 and last_state == 0 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['aah'])
+      elif second_to_last_state == 0 and last_state == 0 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['aan'])
+      elif second_to_last_state == 0 and last_state == 0 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['aas'])
+
+      elif second_to_last_state == 0 and last_state == 1 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['aha'])
+      elif second_to_last_state == 0 and last_state == 1 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['ahh'])
+      elif second_to_last_state == 0 and last_state == 1 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['ahn'])
+      elif second_to_last_state == 0 and last_state == 1 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['ahs'])
+
+      elif second_to_last_state == 0 and last_state == 2 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['ana'])
+      elif second_to_last_state == 0 and last_state == 2 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['anh'])
+      elif second_to_last_state == 0 and last_state == 2 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['ann'])
+      elif second_to_last_state == 0 and last_state == 2 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['ans'])
+
+      elif second_to_last_state == 0 and last_state == 3 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['asa'])
+      elif second_to_last_state == 0 and last_state == 3 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['ash'])
+      elif second_to_last_state == 0 and last_state == 3 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['asn'])
+      elif second_to_last_state == 0 and last_state == 3 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['ass'])
+      ###################################################################
+      elif second_to_last_state == 1 and last_state == 0 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['haa'])
+      elif second_to_last_state == 1 and last_state == 0 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['hah'])
+      elif second_to_last_state == 1 and last_state == 0 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['han'])
+      elif second_to_last_state == 1 and last_state == 0 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['has'])
+
+      elif second_to_last_state == 1 and last_state == 1 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['hha'])
+      elif second_to_last_state == 1 and last_state == 1 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['hhh'])
+      elif second_to_last_state == 1 and last_state == 1 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['hhn'])
+      elif second_to_last_state == 1 and last_state == 1 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['hhs'])
+
+      elif second_to_last_state == 1 and last_state == 2 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['hna'])
+      elif second_to_last_state == 1 and last_state == 2 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['hnh'])
+      elif second_to_last_state == 1 and last_state == 2 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['hnn'])
+      elif second_to_last_state == 1 and last_state == 2 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['hns'])
+
+      elif second_to_last_state == 1 and last_state == 3 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['hsa'])
+      elif second_to_last_state == 1 and last_state == 3 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['hsh'])
+      elif second_to_last_state == 1 and last_state == 3 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['hsn'])
+      elif second_to_last_state == 1 and last_state == 3 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['hss'])
+      ###################################################################
+      elif second_to_last_state == 2 and last_state == 0 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['naa'])
+      elif second_to_last_state == 2 and last_state == 0 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['nah'])
+      elif second_to_last_state == 2 and last_state == 0 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['nan'])
+      elif second_to_last_state == 2 and last_state == 0 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['nas'])
+
+      elif second_to_last_state == 2 and last_state == 1 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['nha'])
+      elif second_to_last_state == 2 and last_state == 1 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['nhh'])
+      elif second_to_last_state == 2 and last_state == 1 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['nhn'])
+      elif second_to_last_state == 2 and last_state == 1 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['nhs'])
+
+      elif second_to_last_state == 2 and last_state == 2 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['nna'])
+      elif second_to_last_state == 2 and last_state == 2 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['nnh'])
+      elif second_to_last_state == 2 and last_state == 2 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['nnn'])
+      elif second_to_last_state == 2 and last_state == 2 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['nns'])
+
+      elif second_to_last_state == 2 and last_state == 3 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['nsa'])
+      elif second_to_last_state == 2 and last_state == 3 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['nsh'])
+      elif second_to_last_state == 2 and last_state == 3 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['nsn'])
+      elif second_to_last_state == 2 and last_state == 3 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['nss'])
+      ###################################################################
+      elif second_to_last_state == 3 and last_state == 0 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['saa'])
+      elif second_to_last_state == 3 and last_state == 0 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['sah'])
+      elif second_to_last_state == 3 and last_state == 0 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['san'])
+      elif second_to_last_state == 3 and last_state == 0 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['sas'])
+
+      elif second_to_last_state == 3 and last_state == 1 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['sha'])
+      elif second_to_last_state == 3 and last_state == 1 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['shh'])
+      elif second_to_last_state == 3 and last_state == 1 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['shn'])
+      elif second_to_last_state == 3 and last_state == 1 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['shs'])
+
+      elif second_to_last_state == 3 and last_state == 2 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['sna'])
+      elif second_to_last_state == 3 and last_state == 2 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['snh'])
+      elif second_to_last_state == 3 and last_state == 2 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['snn'])
+      elif second_to_last_state == 3 and last_state == 2 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['sns'])
+
+      elif second_to_last_state == 3 and last_state == 3 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['ssa'])
+      elif second_to_last_state == 3 and last_state == 3 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['ssh'])
+      elif second_to_last_state == 3 and last_state == 3 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['ssn'])
+      elif second_to_last_state == 3 and last_state == 3 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['sss'])
+    '''
+    
+    # Find last state of current dialog (Trigram)
+    if len(beam_state.emo_sequence) == 0 or len(beam_state.emo_sequence) == 1: #first or second utterance of this dialog
+      loss -= np.log(1)
+    else:
+      #{ang, hap, neu, sad}
+      last_state = beam_state.emo_sequence[len(beam_state.emo_sequence)-1]
+      second_to_last_state = beam_state.emo_sequence[len(beam_state.emo_sequence)-2]
+
+      if second_to_last_state == 0 and last_state == 0 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['aaa'])
+      elif second_to_last_state == 0 and last_state == 0 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['aah'])
+      elif second_to_last_state == 0 and last_state == 0 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['aan'])
+      elif second_to_last_state == 0 and last_state == 0 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['aas'])
+
+      elif second_to_last_state == 0 and last_state == 1 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['aha'])
+      elif second_to_last_state == 0 and last_state == 1 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['ahh'])
+      elif second_to_last_state == 0 and last_state == 1 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['ahn'])
+      elif second_to_last_state == 0 and last_state == 1 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['ahs'])
+
+      elif second_to_last_state == 0 and last_state == 2 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['ana'])
+      elif second_to_last_state == 0 and last_state == 2 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['anh'])
+      elif second_to_last_state == 0 and last_state == 2 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['ann'])
+      elif second_to_last_state == 0 and last_state == 2 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['ans'])
+
+      elif second_to_last_state == 0 and last_state == 3 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['asa'])
+      elif second_to_last_state == 0 and last_state == 3 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['ash'])
+      elif second_to_last_state == 0 and last_state == 3 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['asn'])
+      elif second_to_last_state == 0 and last_state == 3 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['ass'])
+      ###################################################################
+      elif second_to_last_state == 1 and last_state == 0 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['haa'])
+      elif second_to_last_state == 1 and last_state == 0 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['hah'])
+      elif second_to_last_state == 1 and last_state == 0 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['han'])
+      elif second_to_last_state == 1 and last_state == 0 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['has'])
+
+      elif second_to_last_state == 1 and last_state == 1 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['hha'])
+      elif second_to_last_state == 1 and last_state == 1 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['hhh'])
+      elif second_to_last_state == 1 and last_state == 1 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['hhn'])
+      elif second_to_last_state == 1 and last_state == 1 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['hhs'])
+
+      elif second_to_last_state == 1 and last_state == 2 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['hna'])
+      elif second_to_last_state == 1 and last_state == 2 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['hnh'])
+      elif second_to_last_state == 1 and last_state == 2 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['hnn'])
+      elif second_to_last_state == 1 and last_state == 2 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['hns'])
+
+      elif second_to_last_state == 1 and last_state == 3 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['hsa'])
+      elif second_to_last_state == 1 and last_state == 3 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['hsh'])
+      elif second_to_last_state == 1 and last_state == 3 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['hsn'])
+      elif second_to_last_state == 1 and last_state == 3 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['hss'])
+      ###################################################################
+      elif second_to_last_state == 2 and last_state == 0 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['naa'])
+      elif second_to_last_state == 2 and last_state == 0 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['nah'])
+      elif second_to_last_state == 2 and last_state == 0 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['nan'])
+      elif second_to_last_state == 2 and last_state == 0 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['nas'])
+
+      elif second_to_last_state == 2 and last_state == 1 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['nha'])
+      elif second_to_last_state == 2 and last_state == 1 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['nhh'])
+      elif second_to_last_state == 2 and last_state == 1 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['nhn'])
+      elif second_to_last_state == 2 and last_state == 1 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['nhs'])
+
+      elif second_to_last_state == 2 and last_state == 2 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['nna'])
+      elif second_to_last_state == 2 and last_state == 2 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['nnh'])
+      elif second_to_last_state == 2 and last_state == 2 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['nnn'])
+      elif second_to_last_state == 2 and last_state == 2 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['nns'])
+
+      elif second_to_last_state == 2 and last_state == 3 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['nsa'])
+      elif second_to_last_state == 2 and last_state == 3 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['nsh'])
+      elif second_to_last_state == 2 and last_state == 3 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['nsn'])
+      elif second_to_last_state == 2 and last_state == 3 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['nss'])
+      ###################################################################
+      elif second_to_last_state == 3 and last_state == 0 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['saa'])
+      elif second_to_last_state == 3 and last_state == 0 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['sah'])
+      elif second_to_last_state == 3 and last_state == 0 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['san'])
+      elif second_to_last_state == 3 and last_state == 0 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['sas'])
+
+      elif second_to_last_state == 3 and last_state == 1 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['sha'])
+      elif second_to_last_state == 3 and last_state == 1 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['shh'])
+      elif second_to_last_state == 3 and last_state == 1 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['shn'])
+      elif second_to_last_state == 3 and last_state == 1 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['shs'])
+
+      elif second_to_last_state == 3 and last_state == 2 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['sna'])
+      elif second_to_last_state == 3 and last_state == 2 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['snh'])
+      elif second_to_last_state == 3 and last_state == 2 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['snn'])
+      elif second_to_last_state == 3 and last_state == 2 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['sns'])
+
+      elif second_to_last_state == 3 and last_state == 3 and state == 0:
+        loss -= np.log(self.emo_trans_prob_dict['ssa'])
+      elif second_to_last_state == 3 and last_state == 3 and state == 1:
+        loss -= np.log(self.emo_trans_prob_dict['ssh'])
+      elif second_to_last_state == 3 and last_state == 3 and state == 2:
+        loss -= np.log(self.emo_trans_prob_dict['ssn'])
+      elif second_to_last_state == 3 and last_state == 3 and state == 3:
+        loss -= np.log(self.emo_trans_prob_dict['sss'])
+    
     new_beam_state = beam_state.update(speaker, state, loss)
     return new_beam_state
 
