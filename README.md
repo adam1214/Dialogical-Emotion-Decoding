@@ -43,9 +43,20 @@ python3 main.py --verbosity 1 --result_file RESULT_FILE
 Results of DED with beam size = 5.
 
 | Model |  UAR  |  ACC  | 
-|:-----:|:-----:|:-----:|
+|:-----|:-----:|:-----:|
 | Pretrained Classifier | 0.671  | 0.653  |
-| DED | 0.710  | 0.695  |
-
+| Original DED | 0.710  | 0.695  |
+| Bigram-Intra-Softmax DED | 0.677 | 0.659 |
+| Bigram-Intra-Non-Softmax DED  | 0.688 | 0.670 |
+| Bigram-Inter-Softmax DED  | 0.683 | 0.664 |
+| Bigram-Inter-Non-Softmax DED  | 0.707 | 0.692 |
+| Trigram-Intra-Softmax DED  | 0.676 | 0.658 |
+| Trigram-Intra-Non-Softmax DED  | 0.695 | 0.680 |
+| Trigram-Inter-Softmax DED  | 0.680 | 0.661 |
+| Trigram-Inter-Non-Softmax DED  | 0.714 | 0.701 |
+| Trigram-Inter-Softmax-Add-1-Smooth DED  | 0.679 | 0.661 |
+| Trigram-Inter-Non-Softmax-Add-1-Smooth DED  | 0.714 | 0.702 |
+| Trigram-Intra-Softmax-Add-1-Smooth DED  | 0.676 | 0.657 |
+| Trigram-Intra-Non-Softmax-Add-1-Smooth DED  | 0.700 | 0.684 |
 ## Oral Presentation
 [![IMAGE ALT TEXT](img/ICASSP20.png)](https://www.youtube.com/watch?v=Ti4foNyrvzo)
