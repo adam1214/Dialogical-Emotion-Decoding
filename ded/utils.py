@@ -1184,7 +1184,7 @@ def emo_trans_prob_TRI_without_softmax(emo_dict, dialogs, add_one_smooth_or_not,
             pre_emo = emo_dict[utt]
 
     if add_one_smooth_or_not == 1:
-        a_a += 3
+        a_a += 4
         a_h += 4
         a_n += 4
         a_s += 4

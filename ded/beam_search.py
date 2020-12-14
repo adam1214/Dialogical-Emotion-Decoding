@@ -123,7 +123,7 @@ class BeamSearch(object):
       beam_state.block_counts[state] += 1
     '''
     '''
-    # Find last state of this speaker (Bigram)
+    # Find last state of this speaker (Bigram) (Inter)
     last_idx = utils.find_last_idx(beam_state.spk_sequence, speaker)
     if last_idx == None: #this is speaker first utterance
       loss -= np.log(1)
@@ -167,7 +167,7 @@ class BeamSearch(object):
         loss -= np.log(self.emo_trans_prob_dict['s2s'])
     '''
     '''
-    # Find last state of current dialog (Bigram)
+    # Find last state of current dialog (Bigram) (Intra)
     if len(beam_state.emo_sequence) == 0: #first utterance of this dialog
       loss -= np.log(1)
     else:
@@ -209,8 +209,8 @@ class BeamSearch(object):
       elif last_state == 3 and state == 3:
         loss -= np.log(self.emo_trans_prob_dict['s2s'])
     '''
-    '''
-    # Find last and the second to last states of this speaker (Trigram)
+    
+    # Find last and the second to last states of this speaker (Trigram) (Inter)
     last_idx = utils.find_last_idx(beam_state.spk_sequence, speaker)
     second_to_last_idx = utils.find_second_to_last_idx(beam_state.spk_sequence, speaker)
     if last_idx == None or second_to_last_idx == None: #this is speaker first or second utterance
@@ -362,9 +362,9 @@ class BeamSearch(object):
         loss -= np.log(self.emo_trans_prob_dict['ssn'])
       elif second_to_last_state == 3 and last_state == 3 and state == 3:
         loss -= np.log(self.emo_trans_prob_dict['sss'])
-    '''
     
-    # Find last state of current dialog (Trigram)
+    '''
+    # Find last state of current dialog (Trigram) (Intra)
     if len(beam_state.emo_sequence) == 0 or len(beam_state.emo_sequence) == 1: #first or second utterance of this dialog
       loss -= np.log(1)
     else:
@@ -515,7 +515,7 @@ class BeamSearch(object):
         loss -= np.log(self.emo_trans_prob_dict['ssn'])
       elif second_to_last_state == 3 and last_state == 3 and state == 3:
         loss -= np.log(self.emo_trans_prob_dict['sss'])
-    
+    '''
     new_beam_state = beam_state.update(speaker, state, loss)
     return new_beam_state
 
