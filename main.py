@@ -20,6 +20,8 @@ def main():
   dialogs = joblib.load('./data/dialog_iemocap.pkl')
   emo_dict = joblib.load('./data/emo_all_iemocap.pkl')
   out_dict = joblib.load('./data/outputs.pkl')
+  #Markov_Chain_emo_dict = joblib.load('./data/C2C_4emo_all_iemmcap.pkl')
+  Markov_Chain_emo_dict = joblib.load('./data/U2U_4emo_all_iemmcap.pkl')
 
   # set log
   logging.basicConfig(stream=sys.stdout,
@@ -56,15 +58,15 @@ def main():
     print("#"*50+"\n")
   
   #Estimate emotion transtion probability of ALL dialogs(dictionary type)
-  #emo_trans_prob_dict = utils.emo_trans_prob_BI_need_softmax(emo_dict, dialogs)
-  #emo_trans_prob_dict = utils.emo_trans_prob_BI_without_softmax(emo_dict, dialogs)
-  #emo_trans_prob_dict = utils.emo_trans_prob_TRI_need_softmax(emo_dict, dialogs, 0)
-  emo_trans_prob_dict = utils.emo_trans_prob_TRI_without_softmax(emo_dict, dialogs, 1)
+  #emo_trans_prob_dict = utils.emo_trans_prob_BI_need_softmax(Markov_Chain_emo_dict, dialogs)
+  #emo_trans_prob_dict = utils.emo_trans_prob_BI_without_softmax(Markov_Chain_emo_dict, dialogs)
+  #emo_trans_prob_dict = utils.emo_trans_prob_TRI_need_softmax(Markov_Chain_emo_dict, dialogs, 1)
+  emo_trans_prob_dict = utils.emo_trans_prob_TRI_without_softmax(Markov_Chain_emo_dict, dialogs, 1)
   print(emo_trans_prob_dict)
-  #get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(emo_dict, dialogs, 1, 2)
-  #get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(emo_dict, dialogs, 0, 2)
-  #get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(emo_dict, dialogs, 1, 3)
-  get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(emo_dict, dialogs, 0, 3)
+  #get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(Markov_Chain_emo_dict, dialogs, 1, 2)
+  #get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(Markov_Chain_emo_dict, dialogs, 0, 2)
+  #get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(Markov_Chain_emo_dict, dialogs, 1, 3)
+  get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(Markov_Chain_emo_dict, dialogs, 0, 3)
 
   trace = []
   label = []

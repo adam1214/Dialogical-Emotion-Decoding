@@ -72,7 +72,7 @@ def softmax(x):
   softmax_x = exp_x / np.sum(exp_x)
   return softmax_x 
 
-def emo_trans_prob_BI_need_softmax(emo_dict, dialogs, add_one_smooth_or_not, val=None):
+def emo_trans_prob_BI_need_softmax(emo_dict, dialogs, val=None):
     # only estimate anger, happiness, neutral, sadness
     total_transit = 0
 
@@ -186,9 +186,9 @@ def emo_trans_prob_BI_need_softmax(emo_dict, dialogs, add_one_smooth_or_not, val
     n = softmax([neu2ang/total_transit, neu2hap/total_transit, neu2neu/total_transit, neu2sad/total_transit])
     s = softmax([sad2ang/total_transit, sad2hap/total_transit, sad2neu/total_transit, sad2sad/total_transit])
     return {'a2a':a[0], 'a2h':a[1], 'a2n':a[2], 'a2s':a[3], \
-                    'h2a':h[0], 'h2h':h[1], 'h2n':h[2], 'h2s':h[3], \
-                    'n2a':n[0], 'n2h':n[1], 'n2n':n[2], 'n2s':n[3], \
-                    's2a':s[0], 's2h':s[1], 's2n':s[2], 's2s':s[3]}
+            'h2a':h[0], 'h2h':h[1], 'h2n':h[2], 'h2s':h[3], \
+            'n2a':n[0], 'n2h':n[1], 'n2n':n[2], 'n2s':n[3], \
+            's2a':s[0], 's2h':s[1], 's2n':s[2], 's2s':s[3]}
 
 def emo_trans_prob_BI_without_softmax(emo_dict, dialogs, val=None):
     # only estimate anger, happiness, neutral, sadness
@@ -1325,7 +1325,7 @@ def get_val_emo_trans_prob(emo_dict, dialogs, softmax_or_not, Bi_or_Tri):
                 emo_trans_prob_dict[val] = emo_trans_prob_com
         elif Bi_or_Tri == 3:
             if softmax_or_not == 1:
-                emo_trans_prob_com = emo_trans_prob_TRI_need_softmax(emo_dict, dialogs, 0, val)
+                emo_trans_prob_com = emo_trans_prob_TRI_need_softmax(emo_dict, dialogs, 1, val)
                 emo_trans_prob_dict[val] = emo_trans_prob_com
             elif softmax_or_not == 0:
                 emo_trans_prob_com = emo_trans_prob_TRI_without_softmax(emo_dict, dialogs, 1, val)
