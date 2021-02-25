@@ -123,7 +123,7 @@ class BeamSearch(object):
       beam_state.block_counts[state] += 1
     '''
     '''
-    # Find last state of this speaker (Bigram) (Inter)
+    # Find last state of this speaker (Bigram) (Intra)
     last_idx = utils.find_last_idx(beam_state.spk_sequence, speaker)
     if last_idx == None: #this is speaker first utterance
       loss -= np.log(1)
@@ -167,7 +167,7 @@ class BeamSearch(object):
         loss -= np.log(self.emo_trans_prob_dict['s2s'])
     '''
     '''
-    # Find last state of current dialog (Bigram) (Intra)
+    # Find last state of current dialog (Bigram) (Inter)
     if len(beam_state.emo_sequence) == 0: #first utterance of this dialog
       loss -= np.log(1)
     else:
@@ -210,7 +210,7 @@ class BeamSearch(object):
         loss -= np.log(self.emo_trans_prob_dict['s2s'])
     '''
     
-    # Find last and the second to last states of this speaker (Trigram) (Inter)
+    # Find last and the second to last states of this speaker (Trigram) (Intra)
     last_idx = utils.find_last_idx(beam_state.spk_sequence, speaker)
     second_to_last_idx = utils.find_second_to_last_idx(beam_state.spk_sequence, speaker)
     if last_idx == None or second_to_last_idx == None: #this is speaker first or second utterance
@@ -364,7 +364,7 @@ class BeamSearch(object):
         loss -= np.log(self.emo_trans_prob_dict['sss'])
     
     '''
-    # Find last state of current dialog (Trigram) (Intra)
+    # Find last state of current dialog (Trigram) (Inter)
     if len(beam_state.emo_sequence) == 0 or len(beam_state.emo_sequence) == 1: #first or second utterance of this dialog
       loss -= np.log(1)
     else:
