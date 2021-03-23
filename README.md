@@ -40,7 +40,7 @@ python3 main.py --verbosity 1 --result_file RESULT_FILE
 
 
 ## Results
-Results of DED with beam size = 5.
+Results of DED with beam size = 5
 
 | Model |  Original Training Data UAR  | Original Training Data ACC  |Class to Class Training Data UAR  | Class to Class Training Data ACC  |Utt to Utt Training Data UAR  | Utt to Utt Training Data ACC  |
 |:-|:-:|:-:|:-:|:-:|:-:|:-:|
