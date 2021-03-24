@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.metrics import confusion_matrix, recall_score, accuracy_score
+import joblib
 
 def split_dialog(dialogs):
   """Split utterances in a dialog into a set of speaker's utternaces in that dialog.
@@ -72,7 +73,7 @@ def softmax(x):
   softmax_x = exp_x / np.sum(exp_x)
   return softmax_x 
 
-def emo_trans_prob_BI_need_softmax(emo_dict, dialogs, val=None):
+def emo_trans_prob_BI_need_softmax_seq(emo_dict, dialogs, val=None):
     # only estimate anger, happiness, neutral, sadness
     total_transit = 0
 
@@ -96,32 +97,16 @@ def emo_trans_prob_BI_need_softmax(emo_dict, dialogs, val=None):
     sad2neu = 0
     sad2sad = 0
 
-    pre_emo = ''
-    pre_dialog_id = ''
-    last_dialog_last_utt_emo = ''
-
     for dialog in dialogs.values():
+        pre_emo = ''
         for utt in dialog:
-            last_dialog_last_utt_emo = emo_dict[utt]
             dialog_id = utt[0:-5]
-            #print(dialog_id)
             if val and val == dialog_id[0:5]:
                 continue
 
-            if emo_dict[utt] != 'ang' and emo_dict[utt] != 'hap' and emo_dict[utt] != 'neu' and emo_dict[utt] != 'sad': 
-                # only estimate anger, happiness, neutral, sadness
-                pre_dialog_id = dialog_id
-                continue
-
-            if pre_emo == '' and pre_dialog_id == '': #begining of the traversal
+            if pre_emo == '': #begining of the traversal
                 pre_emo = emo_dict[utt]
-                pre_dialog_id = dialog_id
-                #total_transit += 1
                 continue
-
-            if pre_dialog_id != dialog_id: #new dialog
-                #total_transit -= 1
-                pre_emo = ''
 
             if pre_emo == 'ang' and emo_dict[utt] == 'ang':
                 ang2ang += 1
@@ -175,12 +160,11 @@ def emo_trans_prob_BI_need_softmax(emo_dict, dialogs, val=None):
                 sad2sad += 1
                 total_transit += 1
             
-            pre_dialog_id = dialog_id
             pre_emo = emo_dict[utt]
-    #if last_dialog_last_utt_emo == 'ang' or last_dialog_last_utt_emo == 'hap' or last_dialog_last_utt_emo == 'neu' or last_dialog_last_utt_emo == 'sad':
-        #total_transit -= 1
-    print("before softmax:")
-    print(ang2ang/total_transit+ang2hap/total_transit+ang2neu/total_transit+ang2sad/total_transit+hap2ang/total_transit+hap2hap/total_transit+hap2neu/total_transit+hap2sad/total_transit+neu2ang/total_transit+neu2hap/total_transit+neu2neu/total_transit+neu2sad/total_transit+sad2ang/total_transit+sad2hap/total_transit+sad2neu/total_transit+sad2sad/total_transit)
+    
+    #print("before softmax:")
+    #print(ang2ang/total_transit+ang2hap/total_transit+ang2neu/total_transit+ang2sad/total_transit+hap2ang/total_transit+hap2hap/total_transit+hap2neu/total_transit+hap2sad/total_transit+neu2ang/total_transit+neu2hap/total_transit+neu2neu/total_transit+neu2sad/total_transit+sad2ang/total_transit+sad2hap/total_transit+sad2neu/total_transit+sad2sad/total_transit)
+    
     a = softmax([ang2ang/total_transit, ang2hap/total_transit, ang2neu/total_transit, ang2sad/total_transit])
     h = softmax([hap2ang/total_transit, hap2hap/total_transit, hap2neu/total_transit, hap2sad/total_transit])
     n = softmax([neu2ang/total_transit, neu2hap/total_transit, neu2neu/total_transit, neu2sad/total_transit])
@@ -190,8 +174,20 @@ def emo_trans_prob_BI_need_softmax(emo_dict, dialogs, val=None):
             'n2a':n[0], 'n2h':n[1], 'n2n':n[2], 'n2s':n[3], \
             's2a':s[0], 's2h':s[1], 's2n':s[2], 's2s':s[3]}
 
-def emo_trans_prob_BI_without_softmax(emo_dict, dialogs, val=None):
+def emo_trans_prob_BI_without_softmax_seq(emo_dict, dialogs, val=None):
     # only estimate anger, happiness, neutral, sadness
+    Start2a = 0
+    Start2h = 0
+    Start2n = 0
+    Start2s = 0
+    
+    a2End = 0
+    h2End = 0
+    n2End = 0
+    s2End = 0
+    
+    Start2 = 0
+    End2 = 0
     a2 = 0
     h2 = 0
     n2 = 0
@@ -217,50 +213,39 @@ def emo_trans_prob_BI_without_softmax(emo_dict, dialogs, val=None):
     sad2neu = 0
     sad2sad = 0
 
-    pre_emo = ''
-    pre_dialog_id = ''
-    last_dialog_last_utt_emo = ''
-
     for dialog in dialogs.values():
+        utt_num = 1
+        pre_emo = ''
         for utt in dialog:
-            last_dialog_last_utt_emo = emo_dict[utt]
             dialog_id = utt[0:-5]
-            #print(dialog_id)
             if val and val == dialog_id[0:5]:
                 continue
+            if utt_num == 1:
+                Start2 += 1
+                if emo_dict[utt] == 'ang':
+                    Start2a += 1
+                elif emo_dict[utt] == 'hap':
+                    Start2h += 1
+                elif emo_dict[utt] == 'neu':
+                    Start2n += 1
+                elif emo_dict[utt] == 'sad':
+                    Start2s += 1
 
-            if emo_dict[utt] != 'ang' and emo_dict[utt] != 'hap' and emo_dict[utt] != 'neu' and emo_dict[utt] != 'sad': 
-                # only estimate anger, happiness, neutral, sadness
-                pre_dialog_id = dialog_id
-                continue
+            if utt_num == len(dialog):
+                End2 += 1
+                if emo_dict[utt] == 'ang':
+                    a2End += 1
+                elif emo_dict[utt] == 'hap':
+                    h2End += 1
+                elif emo_dict[utt] == 'neu':
+                    n2End += 1
+                elif emo_dict[utt] == 'sad':
+                    s2End += 1
+            utt_num += 1
 
-            if pre_emo == '' and pre_dialog_id == '': #begining of the traversal
+            if pre_emo == '': # begining of the traversal
                 pre_emo = emo_dict[utt]
-                pre_dialog_id = dialog_id
-                '''
-                if pre_emo == 'ang':
-                    a2 += 1
-                elif pre_emo == 'hap':
-                    h2 += 1
-                elif pre_emo == 'neu':
-                    n2 += 1
-                else:
-                    s2 += 1
-                '''
                 continue
-
-            if pre_dialog_id != dialog_id: #new dialog
-                '''
-                if pre_emo == 'ang':
-                    a2 -= 1
-                elif pre_emo == 'hap':
-                    h2 -= 1
-                elif pre_emo == 'neu':
-                    n2 -= 1
-                else:
-                    s2 -= 1
-                '''
-                pre_emo = ''
 
             if pre_emo == 'ang' and emo_dict[utt] == 'ang':
                 ang2ang += 1
@@ -313,40 +298,25 @@ def emo_trans_prob_BI_without_softmax(emo_dict, dialogs, val=None):
             if pre_emo == 'sad' and emo_dict[utt] == 'sad':
                 sad2sad += 1
                 s2 += 1
-            
-            pre_dialog_id = dialog_id
+
             pre_emo = emo_dict[utt]
-            '''
-            if pre_emo == 'ang':
-                a2 += 1
-            elif pre_emo == 'hap':
-                h2 += 1
-            elif pre_emo == 'neu':
-                n2 += 1
-            else:
-                s2 += 1
-            '''
-    '''
-    if last_dialog_last_utt_emo == 'ang':
-        a2 -= 1
-    elif last_dialog_last_utt_emo == 'hap':
-        h2 -= 1
-    elif last_dialog_last_utt_emo == 'neu':
-        n2 -= 1
-    elif last_dialog_last_utt_emo == 'sad':
-        s2 -= 1
-    '''
+    
     print(ang2ang/a2+ang2hap/a2+ang2neu/a2+ang2sad/a2)
     print(hap2ang/h2+hap2hap/h2+hap2neu/h2+hap2sad/h2)
     print(neu2ang/n2+neu2hap/n2+neu2neu/n2+neu2sad/n2)
     print(sad2ang/s2+sad2hap/s2+sad2neu/s2+sad2sad/s2)
+    #print((Start2a+Start2h+Start2n+Start2s)/Start2)
+    #print((a2End+h2End+n2End+s2End)/End2)
     print('=============================================')
+    
     return {'a2a':ang2ang/a2, 'a2h':ang2hap/a2, 'a2n':ang2neu/a2, 'a2s':ang2sad/a2, \
             'h2a':hap2ang/h2, 'h2h':hap2hap/h2, 'h2n':hap2neu/h2, 'h2s':hap2sad/h2, \
             'n2a':neu2ang/n2, 'n2h':neu2hap/n2, 'n2n':neu2neu/n2, 'n2s':neu2sad/n2, \
-            's2a':sad2ang/s2, 's2h':sad2hap/s2, 's2n':sad2neu/s2, 's2s':sad2sad/s2  }
+            's2a':sad2ang/s2, 's2h':sad2hap/s2, 's2n':sad2neu/s2, 's2s':sad2sad/s2, \
+            'Start2a':Start2a/Start2, 'Start2h':Start2h/Start2, 'Start2n':Start2n/Start2, 'Start2s':Start2s/Start2, \
+            'a2End':a2End/End2, 'h2End':h2End/End2, 'n2End':n2End/End2, 's2End':s2End/End2 }
 
-def emo_trans_prob_TRI_need_softmax(emo_dict, dialogs, add_one_smooth_or_not ,val=None):
+def emo_trans_prob_TRI_need_softmax_seq(emo_dict, dialogs, add_one_smooth_or_not ,val=None):
     # only estimate anger, happiness, neutral, sadness
     total_transit = 0
 
@@ -420,38 +390,23 @@ def emo_trans_prob_TRI_need_softmax(emo_dict, dialogs, add_one_smooth_or_not ,va
 
     pre_emo = ''
     pre_pre_emo = ''
-    pre_dialog_id = ''
-    last_dialog_last_utt_emo = ''
 
     for dialog in dialogs.values():
-        for utt in dialog:
-            last_dialog_last_utt_emo = emo_dict[utt]
+        pre_emo = ''
+        pre_pre_emo = ''
+        for utt in dialog:    
             dialog_id = utt[0:-5]
-            #print(dialog_id)
             if val and val == dialog_id[0:5]:
                 continue
 
-            if emo_dict[utt] != 'ang' and emo_dict[utt] != 'hap' and emo_dict[utt] != 'neu' and emo_dict[utt] != 'sad': 
-                # only estimate anger, happiness, neutral, sadness
-                pre_dialog_id = dialog_id
-                continue
-
-            if pre_emo == '' and pre_dialog_id == '': #begining of the traversal
+            if pre_emo == '': #begining of the traversal
                 pre_emo = emo_dict[utt]
-                pre_dialog_id = dialog_id
-                #total_transit += 1
                 continue
 
             if pre_emo != '' and pre_pre_emo == '': #after one step of new dialog traversal
                 pre_pre_emo = pre_emo
                 pre_emo = emo_dict[utt]
-                pre_dialog_id = dialog_id
                 continue
-
-            if pre_dialog_id != dialog_id: #new dialog
-                #total_transit -= 1
-                pre_emo = ''
-                pre_pre_emo = ''
             
             if pre_pre_emo == 'ang' and pre_emo == 'ang' and emo_dict[utt] == 'ang':
                 aaa += 1
@@ -661,11 +616,8 @@ def emo_trans_prob_TRI_need_softmax(emo_dict, dialogs, add_one_smooth_or_not ,va
                 sss += 1
                 total_transit += 1
    
-            pre_dialog_id = dialog_id
             pre_pre_emo = pre_emo
             pre_emo = emo_dict[utt]
-    #if last_dialog_last_utt_emo == 'ang' or last_dialog_last_utt_emo == 'hap' or last_dialog_last_utt_emo == 'neu' or last_dialog_last_utt_emo == 'sad':
-        #total_transit -= 1
 
     if add_one_smooth_or_not == 1:
         total_transit += 64
@@ -846,7 +798,7 @@ def emo_trans_prob_TRI_need_softmax(emo_dict, dialogs, add_one_smooth_or_not ,va
             'sna':s_n[0], 'snh':s_n[1], 'snn':s_n[2], 'sns':s_n[3], \
             'ssa':s_s[0], 'ssh':s_s[1], 'ssn':s_s[2], 'sss':s_s[3]  }
 
-def emo_trans_prob_TRI_without_softmax(emo_dict, dialogs, add_one_smooth_or_not, val=None):
+def emo_trans_prob_TRI_without_softmax_seq(emo_dict, dialogs, add_one_smooth_or_not, val=None):
     # only estimate anger, happiness, neutral, sadness
     a_a = 0
     a_h = 0
@@ -936,40 +888,22 @@ def emo_trans_prob_TRI_without_softmax(emo_dict, dialogs, add_one_smooth_or_not,
     ssn = 0
     sss = 0
 
-    pre_emo = ''
-    pre_pre_emo = ''
-    pre_dialog_id = ''
-    last_dialog_last_utt_emo = ''
-
     for dialog in dialogs.values():
+        pre_emo = ''
+        pre_pre_emo = ''
         for utt in dialog:
-            last_dialog_last_utt_emo = emo_dict[utt]
             dialog_id = utt[0:-5]
-            #print(dialog_id)
             if val and val == dialog_id[0:5]:
                 continue
 
-            if emo_dict[utt] != 'ang' and emo_dict[utt] != 'hap' and emo_dict[utt] != 'neu' and emo_dict[utt] != 'sad': 
-                # only estimate anger, happiness, neutral, sadness
-                pre_dialog_id = dialog_id
-                continue
-
-            if pre_emo == '' and pre_dialog_id == '': #begining of the traversal
+            if pre_emo == '': #begining of the traversal
                 pre_emo = emo_dict[utt]
-                pre_dialog_id = dialog_id
-                #total_transit += 1
                 continue
 
             if pre_emo != '' and pre_pre_emo == '': #after one step of new dialog traversal
                 pre_pre_emo = pre_emo
                 pre_emo = emo_dict[utt]
-                pre_dialog_id = dialog_id
                 continue
-
-            if pre_dialog_id != dialog_id: #new dialog
-                #total_transit -= 1
-                pre_emo = ''
-                pre_pre_emo = ''
             
             if pre_pre_emo == 'ang' and pre_emo == 'ang' and emo_dict[utt] == 'ang':
                 aaa += 1
@@ -1178,8 +1112,7 @@ def emo_trans_prob_TRI_without_softmax(emo_dict, dialogs, add_one_smooth_or_not,
             if pre_pre_emo == 'sad' and pre_emo == 'sad' and emo_dict[utt] == 'sad':
                 sss += 1
                 s_s += 1
-   
-            pre_dialog_id = dialog_id
+
             pre_pre_emo = pre_emo
             pre_emo = emo_dict[utt]
 
@@ -1271,6 +1204,7 @@ def emo_trans_prob_TRI_without_softmax(emo_dict, dialogs, add_one_smooth_or_not,
         ssh += 1
         ssn += 1
         sss += 1
+    
     print( (aaa+aah+aan+aas)/a_a )
     print( (aha+ahh+ahn+ahs)/a_h )
     print( (ana+anh+ann+ans)/a_n )
@@ -1291,6 +1225,7 @@ def emo_trans_prob_TRI_without_softmax(emo_dict, dialogs, add_one_smooth_or_not,
     print( (sna+snh+snn+sns)/s_n )
     print( (ssa+ssh+ssn+sss)/s_s )
     print('=============================================')
+    
     return {'aaa':aaa/a_a, 'aah':aah/a_a, 'aan':aan/a_a, 'aas':aas/a_a, \
             'aha':aha/a_h, 'ahh':ahh/a_h, 'ahn':ahn/a_h, 'ahs':ahs/a_h, \
             'ana':ana/a_n, 'anh':anh/a_n, 'ann':ann/a_n, 'ans':ans/a_n, \
@@ -1308,29 +1243,281 @@ def emo_trans_prob_TRI_without_softmax(emo_dict, dialogs, add_one_smooth_or_not,
             'sna':sna/s_n, 'snh':snh/s_n, 'snn':snn/s_n, 'sns':sns/s_n, \
             'ssa':ssa/s_s, 'ssh':ssh/s_s, 'ssn':ssn/s_s, 'sss':sss/s_s  }
 
+def emo_trans_prob_BI_without_softmax_intra(emo_dict, dialogs, val=None):
+    # only estimate anger, happiness, neutral, sadness
+    Start2a = 0
+    Start2h = 0
+    Start2n = 0
+    Start2s = 0
+    
+    a2End = 0
+    h2End = 0
+    n2End = 0
+    s2End = 0
+    
+    Start2 = 0
+    End2 = 0
+    a2 = 0
+    h2 = 0
+    n2 = 0
+    s2 = 0
+
+    ang2ang = 0
+    ang2hap = 0
+    ang2neu = 0
+    ang2sad = 0
+    
+    hap2ang = 0
+    hap2hap = 0
+    hap2neu = 0
+    hap2sad = 0
+
+    neu2ang = 0
+    neu2hap = 0
+    neu2neu = 0
+    neu2sad = 0
+
+    sad2ang = 0
+    sad2hap = 0
+    sad2neu = 0
+    sad2sad = 0
+
+    spk_dialogs = split_dialog(dialogs)
+    for utt_list in spk_dialogs.values():
+        pre_emo = ''
+        utt_num = 1
+        for utt in utt_list:
+            dialog_id = utt[0:-5]
+            if val and val == dialog_id[0:5]:
+                continue
+            if utt_num == 1:
+                Start2 += 1
+                if emo_dict[utt] == 'ang':
+                    Start2a += 1
+                elif emo_dict[utt] == 'hap':
+                    Start2h += 1
+                elif emo_dict[utt] == 'neu':
+                    Start2n += 1
+                elif emo_dict[utt] == 'sad':
+                    Start2s += 1
+
+            if utt_num == len(utt_list):
+                End2 += 1
+                if emo_dict[utt] == 'ang':
+                    a2End += 1
+                elif emo_dict[utt] == 'hap':
+                    h2End += 1
+                elif emo_dict[utt] == 'neu':
+                    n2End += 1
+                elif emo_dict[utt] == 'sad':
+                    s2End += 1
+            utt_num += 1
+            
+            if pre_emo == '': # begining of the dialog
+                pre_emo = emo_dict[utt]
+                continue
+
+            if pre_emo == 'ang' and emo_dict[utt] == 'ang':
+                ang2ang += 1
+                a2 += 1
+            if pre_emo == 'ang' and emo_dict[utt] == 'hap':
+                ang2hap += 1
+                a2 += 1
+            if pre_emo == 'ang' and emo_dict[utt] == 'neu':
+                ang2neu += 1
+                a2 += 1
+            if pre_emo == 'ang' and emo_dict[utt] == 'sad':
+                ang2sad += 1
+                a2 += 1
+
+            if pre_emo == 'hap' and emo_dict[utt] == 'ang':
+                hap2ang += 1
+                h2 += 1
+            if pre_emo == 'hap' and emo_dict[utt] == 'hap':
+                hap2hap += 1
+                h2 += 1
+            if pre_emo == 'hap' and emo_dict[utt] == 'neu':
+                hap2neu += 1
+                h2 += 1
+            if pre_emo == 'hap' and emo_dict[utt] == 'sad':
+                hap2sad += 1
+                h2 += 1
+
+            if pre_emo == 'neu' and emo_dict[utt] == 'ang':
+                neu2ang += 1
+                n2 += 1
+            if pre_emo == 'neu' and emo_dict[utt] == 'hap':
+                neu2hap += 1
+                n2 += 1
+            if pre_emo == 'neu' and emo_dict[utt] == 'neu':
+                neu2neu += 1
+                n2 += 1
+            if pre_emo == 'neu' and emo_dict[utt] == 'sad':
+                neu2sad += 1
+                n2 += 1
+
+            if pre_emo == 'sad' and emo_dict[utt] == 'ang':
+                sad2ang += 1
+                s2 += 1
+            if pre_emo == 'sad' and emo_dict[utt] == 'hap':
+                sad2hap += 1
+                s2 += 1
+            if pre_emo == 'sad' and emo_dict[utt] == 'neu':
+                sad2neu += 1
+                s2 += 1
+            if pre_emo == 'sad' and emo_dict[utt] == 'sad':
+                sad2sad += 1
+                s2 += 1
+            
+            pre_emo = emo_dict[utt]
+    '''
+    print(ang2ang/a2+ang2hap/a2+ang2neu/a2+ang2sad/a2)
+    print(hap2ang/h2+hap2hap/h2+hap2neu/h2+hap2sad/h2)
+    print(neu2ang/n2+neu2hap/n2+neu2neu/n2+neu2sad/n2)
+    print(sad2ang/s2+sad2hap/s2+sad2neu/s2+sad2sad/s2)
+    #print((Start2a+Start2h+Start2n+Start2s)/Start2)
+    #print((a2End+h2End+n2End+s2End)/End2)
+    print('=============================================')
+    '''
+    return {'a2a':ang2ang/a2, 'a2h':ang2hap/a2, 'a2n':ang2neu/a2, 'a2s':ang2sad/a2, \
+            'h2a':hap2ang/h2, 'h2h':hap2hap/h2, 'h2n':hap2neu/h2, 'h2s':hap2sad/h2, \
+            'n2a':neu2ang/n2, 'n2h':neu2hap/n2, 'n2n':neu2neu/n2, 'n2s':neu2sad/n2, \
+            's2a':sad2ang/s2, 's2h':sad2hap/s2, 's2n':sad2neu/s2, 's2s':sad2sad/s2, \
+            'Start2a':Start2a/Start2, 'Start2h':Start2h/Start2, 'Start2n':Start2n/Start2, 'Start2s':Start2s/Start2, \
+            'a2End':a2End/End2, 'h2End':h2End/End2, 'n2End':n2End/End2, 's2End':s2End/End2 }
+
+def emo_trans_prob_BI_need_softmax_intra(emo_dict, dialogs, val):
+    # only estimate anger, happiness, neutral, sadness
+    total_transit = 0
+
+    ang2ang = 0
+    ang2hap = 0
+    ang2neu = 0
+    ang2sad = 0
+    
+    hap2ang = 0
+    hap2hap = 0
+    hap2neu = 0
+    hap2sad = 0
+
+    neu2ang = 0
+    neu2hap = 0
+    neu2neu = 0
+    neu2sad = 0
+
+    sad2ang = 0
+    sad2hap = 0
+    sad2neu = 0
+    sad2sad = 0
+
+    spk_dialogs = split_dialog(dialogs)
+    for utt_list in spk_dialogs.values():
+        pre_emo = ''
+        for utt in utt_list:
+            dialog_id = utt[0:-5]
+            if val and val == dialog_id[0:5]:
+                continue
+            
+            if pre_emo == '': # begining of the dialog
+                pre_emo = emo_dict[utt]
+                continue
+
+            if pre_emo == 'ang' and emo_dict[utt] == 'ang':
+                ang2ang += 1
+                total_transit += 1
+            if pre_emo == 'ang' and emo_dict[utt] == 'hap':
+                ang2hap += 1
+                total_transit += 1
+            if pre_emo == 'ang' and emo_dict[utt] == 'neu':
+                ang2neu += 1
+                total_transit += 1
+            if pre_emo == 'ang' and emo_dict[utt] == 'sad':
+                ang2sad += 1
+                total_transit += 1
+
+            if pre_emo == 'hap' and emo_dict[utt] == 'ang':
+                hap2ang += 1
+                total_transit += 1
+            if pre_emo == 'hap' and emo_dict[utt] == 'hap':
+                hap2hap += 1
+                total_transit += 1
+            if pre_emo == 'hap' and emo_dict[utt] == 'neu':
+                hap2neu += 1
+                total_transit += 1
+            if pre_emo == 'hap' and emo_dict[utt] == 'sad':
+                hap2sad += 1
+                total_transit += 1
+
+            if pre_emo == 'neu' and emo_dict[utt] == 'ang':
+                neu2ang += 1
+                total_transit += 1
+            if pre_emo == 'neu' and emo_dict[utt] == 'hap':
+                neu2hap += 1
+                total_transit += 1
+            if pre_emo == 'neu' and emo_dict[utt] == 'neu':
+                neu2neu += 1
+                total_transit += 1
+            if pre_emo == 'neu' and emo_dict[utt] == 'sad':
+                neu2sad += 1
+                total_transit += 1
+
+            if pre_emo == 'sad' and emo_dict[utt] == 'ang':
+                sad2ang += 1
+                total_transit += 1
+            if pre_emo == 'sad' and emo_dict[utt] == 'hap':
+                sad2hap += 1
+                total_transit += 1
+            if pre_emo == 'sad' and emo_dict[utt] == 'neu':
+                sad2neu += 1
+                total_transit += 1
+            if pre_emo == 'sad' and emo_dict[utt] == 'sad':
+                sad2sad += 1
+                total_transit += 1
+            
+            pre_emo = emo_dict[utt]
+    
+    print("Before softmax:")
+    print(ang2ang/total_transit+ang2hap/total_transit+ang2neu/total_transit+ang2sad/total_transit+hap2ang/total_transit+hap2hap/total_transit+hap2neu/total_transit+hap2sad/total_transit+neu2ang/total_transit+neu2hap/total_transit+neu2neu/total_transit+neu2sad/total_transit+sad2ang/total_transit+sad2hap/total_transit+sad2neu/total_transit+sad2sad/total_transit)
+    
+    a = softmax([ang2ang/total_transit, ang2hap/total_transit, ang2neu/total_transit, ang2sad/total_transit])
+    h = softmax([hap2ang/total_transit, hap2hap/total_transit, hap2neu/total_transit, hap2sad/total_transit])
+    n = softmax([neu2ang/total_transit, neu2hap/total_transit, neu2neu/total_transit, neu2sad/total_transit])
+    s = softmax([sad2ang/total_transit, sad2hap/total_transit, sad2neu/total_transit, sad2sad/total_transit])
+    return {'a2a':a[0], 'a2h':a[1], 'a2n':a[2], 'a2s':a[3], \
+            'h2a':h[0], 'h2h':h[1], 'h2n':h[2], 'h2s':h[3], \
+            'n2a':n[0], 'n2h':n[1], 'n2n':n[2], 'n2s':n[3], \
+            's2a':s[0], 's2h':s[1], 's2n':s[2], 's2s':s[3]  }
+
 def get_val_emo_trans_prob(emo_dict, dialogs, softmax_or_not, Bi_or_Tri):
     """Get emo_trans_prob estimated from training sessions."""
 
     session = ['Ses01', 'Ses02', 'Ses03', 'Ses04', 'Ses05']
-    emo_trans_prob_dict = {}
+    seq_emo_trans_prob_dict = {}
+    intra_emo_trans_prob_dict = {}
     for i in range(len(session)):
         val = session[i]
-        train_sessions = session[:i] + session[i+1:]
         if Bi_or_Tri == 2:
             if softmax_or_not == 1:
-                emo_trans_prob_com = emo_trans_prob_BI_need_softmax(emo_dict, dialogs, val)
-                emo_trans_prob_dict[val] = emo_trans_prob_com
+                seq_emo_trans_prob_com = emo_trans_prob_BI_need_softmax_seq(emo_dict, dialogs, val)
+                seq_emo_trans_prob_dict[val] = seq_emo_trans_prob_com
+
+                intra_emo_trans_prob_com = emo_trans_prob_BI_need_softmax_intra(emo_dict, dialogs, val)
+                intra_emo_trans_prob_dict[val] = intra_emo_trans_prob_com
             elif softmax_or_not == 0:
-                emo_trans_prob_com = emo_trans_prob_BI_without_softmax(emo_dict, dialogs, val)
-                emo_trans_prob_dict[val] = emo_trans_prob_com
+                seq_emo_trans_prob_com = emo_trans_prob_BI_without_softmax_seq(emo_dict, dialogs, val)
+                seq_emo_trans_prob_dict[val] = seq_emo_trans_prob_com
+
+                intra_emo_trans_prob_com = emo_trans_prob_BI_without_softmax_intra(emo_dict, dialogs, val)
+                intra_emo_trans_prob_dict[val] = intra_emo_trans_prob_com
+
         elif Bi_or_Tri == 3:
             if softmax_or_not == 1:
-                emo_trans_prob_com = emo_trans_prob_TRI_need_softmax(emo_dict, dialogs, 1, val)
-                emo_trans_prob_dict[val] = emo_trans_prob_com
+                seq_emo_trans_prob_com = emo_trans_prob_TRI_need_softmax_seq(emo_dict, dialogs, 1, val)
+                seq_emo_trans_prob_dict[val] = seq_emo_trans_prob_com
             elif softmax_or_not == 0:
-                emo_trans_prob_com = emo_trans_prob_TRI_without_softmax(emo_dict, dialogs, 1, val)
-                emo_trans_prob_dict[val] = emo_trans_prob_com
-    return emo_trans_prob_dict
+                seq_emo_trans_prob_com = emo_trans_prob_TRI_without_softmax_seq(emo_dict, dialogs, 0, val)
+                seq_emo_trans_prob_dict[val] = seq_emo_trans_prob_com
+    return seq_emo_trans_prob_dict, intra_emo_trans_prob_dict
 
 def find_last_idx(trace_speakers, speaker):
   """Find the index of speaker's last utterance."""
@@ -1379,6 +1566,7 @@ def evaluate(trace, label):
 
 
 if __name__ == '__main__':
+    '''
     dialog = {'Ses05M_script03_2_M': ['Ses05M_script03_2_M042', 'Ses05M_script03_2_M043', 
                 'Ses05M_script03_2_M044', 'Ses05M_script03_2_M045']}
     emo = {'Ses05M_script03_2_M042': 'ang', 'Ses05M_script03_2_M043': 'ang', 
@@ -1388,4 +1576,13 @@ if __name__ == '__main__':
     bias, total_transit = transition_bias(spk_dialog, emo)
     crp_alpha = 1
     print('Transition bias: {} , Total transition: {}'.format(bias, total_transit))
+    '''
 
+    emo_dict = joblib.load('../data/emo_all_iemocap.pkl')
+    C2C_emo_dict = joblib.load('../data/C2C_4emo_all_iemocap.pkl')
+    U2U_emo_dict = joblib.load('../data/U2U_4emo_all_iemocap.pkl')
+    
+    dialogs = joblib.load('../data/dialog_iemocap.pkl')
+    dialogs_edit = joblib.load('../data/dialog_4emo_iemocap.pkl')
+
+    get_val_emo_trans_prob(U2U_emo_dict, dialogs, softmax_or_not=0, Bi_or_Tri=3)

@@ -18,10 +18,11 @@ def main():
   out_dict: dict, output logits of emotion classifier.
   """
   dialogs = joblib.load('./data/dialog_iemocap.pkl')
+  dialogs_edit = joblib.load('./data/dialog_4emo_iemocap.pkl')
   emo_dict = joblib.load('./data/emo_all_iemocap.pkl')
   out_dict = joblib.load('./data/outputs.pkl')
-  #Markov_Chain_emo_dict = joblib.load('./data/C2C_4emo_all_iemmcap.pkl')
-  Markov_Chain_emo_dict = joblib.load('./data/U2U_4emo_all_iemmcap.pkl')
+  C2C_emo_dict = joblib.load('./data/C2C_4emo_all_iemocap.pkl')
+  U2U_emo_dict = joblib.load('./data/U2U_4emo_all_iemocap.pkl')
 
   # set log
   logging.basicConfig(stream=sys.stdout,
@@ -56,22 +57,26 @@ def main():
 
     bias_dict = utils.get_val_bias(spk_dialogs, emo_dict)
     print("#"*50+"\n")
-  
-  #Estimate emotion transtion probability of ALL dialogs(dictionary type)
-  #emo_trans_prob_dict = utils.emo_trans_prob_BI_need_softmax(Markov_Chain_emo_dict, dialogs)
-  #emo_trans_prob_dict = utils.emo_trans_prob_BI_without_softmax(Markov_Chain_emo_dict, dialogs)
-  #emo_trans_prob_dict = utils.emo_trans_prob_TRI_need_softmax(Markov_Chain_emo_dict, dialogs, 1)
-  emo_trans_prob_dict = utils.emo_trans_prob_TRI_without_softmax(Markov_Chain_emo_dict, dialogs, 1)
-  print(emo_trans_prob_dict)
-  #get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(Markov_Chain_emo_dict, dialogs, 1, 2)
-  #get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(Markov_Chain_emo_dict, dialogs, 0, 2)
-  #get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(Markov_Chain_emo_dict, dialogs, 1, 3)
-  get_val_emo_trans_prob_dict = utils.get_val_emo_trans_prob(Markov_Chain_emo_dict, dialogs, 0, 3)
+
+  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(emo_dict, dialogs_edit, softmax_or_not=1, Bi_or_Tri=2)
+  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(emo_dict, dialogs_edit, softmax_or_not=0, Bi_or_Tri=2)
+  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(emo_dict, dialogs_edit, softmax_or_not=1, Bi_or_Tri=3)
+  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(emo_dict, dialogs_edit, softmax_or_not=0, Bi_or_Tri=3)
+
+  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(C2C_emo_dict, dialogs, softmax_or_not=1, Bi_or_Tri=2)
+  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(C2C_emo_dict, dialogs, softmax_or_not=0, Bi_or_Tri=2)
+  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(C2C_emo_dict, dialogs, softmax_or_not=1, Bi_or_Tri=3)
+  seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(C2C_emo_dict, dialogs, softmax_or_not=0, Bi_or_Tri=3)
+
+  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(U2U_emo_dict, dialogs, softmax_or_not=1, Bi_or_Tri=2)
+  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(U2U_emo_dict, dialogs, softmax_or_not=0, Bi_or_Tri=2)
+  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(U2U_emo_dict, dialogs, softmax_or_not=1, Bi_or_Tri=3)
+  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(U2U_emo_dict, dialogs, softmax_or_not=0, Bi_or_Tri=3)
 
   trace = []
   label = []
   org_pred = []
-  DED = bs.BeamSearch(p_0, emo_trans_prob_dict, args.crp_alpha, args.num_state, 
+  DED = bs.BeamSearch(p_0, {}, args.crp_alpha, args.num_state, 
                               args.beam_size, args.test_iteration, emo_dict, out_dict)
 
   for i, dia in enumerate(dialogs):
@@ -81,7 +86,7 @@ def main():
     DED.transition_bias = bias_dict[dia[:5]] 
 
     # Apply emo_trans_prob_dict estimated from other 4 sessions.
-    DED.emo_trans_prob_dict = get_val_emo_trans_prob_dict[dia[:5]]
+    DED.emo_trans_prob_dict = seq_emo_trans_prob_dict[dia[:5]]
 
     # Beam search decoder
     out = DED.decode(dialogs[dia]) 

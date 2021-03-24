@@ -50,7 +50,7 @@ if __name__ == '__main__':
             if emo_dict[utt] == emo_list[index]:
                 emo_dict[utt] = replace_emo_list[index]
                 break
-    joblib.dump(emo_dict, 'C2C_4emo_all_iemmcap.pkl') #class to class mapping according to pretrained classifier
+    joblib.dump(emo_dict, 'C2C_4emo_all_iemocap.pkl') #class to class mapping according to pretrained classifier
     #################################################################################################################
     emo_dict = joblib.load('emo_all_iemocap.pkl')
     for utt in emo_dict:
@@ -65,4 +65,13 @@ if __name__ == '__main__':
                 elif np.argmax(out_dict[utt]) == 3:
                     emo_dict[utt] = 'sad'
                 break
-    joblib.dump(emo_dict, 'U2U_4emo_all_iemmcap.pkl') #utterance to utterance mapping according to pretrained classifier
+    joblib.dump(emo_dict, 'U2U_4emo_all_iemocap.pkl') #utterance to utterance mapping according to pretrained classifier
+    #################################################################################################################
+    dialogs_edit = joblib.load('dialog_iemocap.pkl')
+    dialogs = joblib.load('dialog_iemocap.pkl')
+    emo_dict = joblib.load('emo_all_iemocap.pkl')
+    for dialog in dialogs.values():
+        for utt in dialog:
+            if emo_dict[utt] != 'ang' and emo_dict[utt] != 'hap' and emo_dict[utt] != 'neu' and emo_dict[utt] != 'sad':
+                dialogs_edit[utt[:-5]].remove(utt)
+    joblib.dump(dialogs_edit, 'dialog_4emo_iemocap.pkl')

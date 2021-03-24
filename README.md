@@ -46,18 +46,18 @@ Results of DED with beam size = 5
 |:-|:-:|:-:|:-:|:-:|:-:|:-:|
 | Pretrained Classifier |0.671|0.653|-|-|-|-|
 | Original DED |0.710|0.695|-|-|-|-|
-| Bigram-Inter-Softmax DED      |0.677|0.659|0.670|0.654|0.674|0.655|
-| Bigram-Inter-Nonsoftmax DED  |0.688|0.670|0.670|0.665|0.684|0.666|
-| Bigram-Intra-Softmax DED      |0.683|0.664|0.679|0.663|0.679|0.660|
-| Bigram-Intra-Nonsoftmax DED  |0.707|0.692|0.685|0.683|0.701|0.684|
-| Trigram-Inter-Softmax DED     |0.676|0.658|0.675|0.658|0.674|0.655|
-| Trigram-Inter-Nonsoftmax DED |0.695|0.680|0.680|0.673|0.700|0.684|
-| Trigram-Intra-Softmax DED     |0.680|0.661|0.681|0.664|0.677|0.658|
-| Trigram-Intra-Nonsoftmax DED |0.714|0.701|0.686|0.685|0.718|0.704|
-| Trigram-Inter-Softmax-Add-1-Smooth DED |0.676|0.657|0.675|0.658|0.674|0.655|
-| Trigram-Inter-Nonsoftmax-Add-1-Smooth DED |0.700|0.684|0.682|0.675|0.701|0.684|
-| Trigram-Intra-Softmax-Add-1-Smooth DED |0.679|0.661|0.681|0.664|0.677|0.658|
-| Trigram-Intra-Nonsoftmax-Add-1-Smooth DED |0.714|0.702|0.686|0.685|0.718|0.704|
+| Bigram-Sequential-Softmax DED      |0.677|0.659|0.670|0.654|0.674|0.655|
+| Bigram-Sequential-Nonsoftmax DED  |0.687|0.669|0.670|0.665|0.684|0.666|
+| Bigram-Intra-Softmax DED      |0.683|0.665|0.682|0.666|0.682|0.664|
+| Bigram-Intra-Nonsoftmax DED  |0.718|0.704|0.691|0.686|0.710|0.696|
+| Trigram-Sequential-Softmax DED     |0.676|0.657|0.675|0.658|0.674|0.655|
+| Trigram-Sequential-Nonsoftmax DED |0.697|0.682|0.680|0.673|0.700|0.684|
+| Trigram-Intra-Softmax DED     |||||||
+| Trigram-Intra-Nonsoftmax DED |||||||
+| Trigram-Sequential-Softmax-Add-1-Smooth DED |0.676|0.657|0.675|0.658|0.674|0.655|
+| Trigram-Sequential-Nonsoftmax-Add-1-Smooth DED |0.700|0.685|0.682|0.675|0.701|0.684|
+| Trigram-Intra-Softmax-Add-1-Smooth DED |||||||
+| Trigram-Intra-Nonsoftmax-Add-1-Smooth DED |||||||
 
 ## Oral Presentation
 [![IMAGE ALT TEXT](img/ICASSP20.png)](https://www.youtube.com/watch?v=Ti4foNyrvzo)
