@@ -66,12 +66,12 @@ def main():
   #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(C2C_emo_dict, dialogs, softmax_or_not=1, Bi_or_Tri=2)
   #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(C2C_emo_dict, dialogs, softmax_or_not=0, Bi_or_Tri=2)
   #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(C2C_emo_dict, dialogs, softmax_or_not=1, Bi_or_Tri=3)
-  seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(C2C_emo_dict, dialogs, softmax_or_not=0, Bi_or_Tri=3)
+  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(C2C_emo_dict, dialogs, softmax_or_not=0, Bi_or_Tri=3)
 
   #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(U2U_emo_dict, dialogs, softmax_or_not=1, Bi_or_Tri=2)
   #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(U2U_emo_dict, dialogs, softmax_or_not=0, Bi_or_Tri=2)
   #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(U2U_emo_dict, dialogs, softmax_or_not=1, Bi_or_Tri=3)
-  #seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(U2U_emo_dict, dialogs, softmax_or_not=0, Bi_or_Tri=3)
+  seq_emo_trans_prob_dict, intra_emo_trans_prob_dict = utils.get_val_emo_trans_prob(U2U_emo_dict, dialogs, softmax_or_not=0, Bi_or_Tri=3)
 
   trace = []
   label = []
@@ -86,7 +86,7 @@ def main():
     DED.transition_bias = bias_dict[dia[:5]] 
 
     # Apply emo_trans_prob_dict estimated from other 4 sessions.
-    DED.emo_trans_prob_dict = seq_emo_trans_prob_dict[dia[:5]]
+    DED.emo_trans_prob_dict = intra_emo_trans_prob_dict[dia[:5]]
 
     # Beam search decoder
     out = DED.decode(dialogs[dia]) 
