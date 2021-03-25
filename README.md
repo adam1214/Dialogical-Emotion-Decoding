@@ -52,12 +52,12 @@ Results of DED with beam size = 5
 | Bigram-Intra-Nonsoftmax DED  |0.718|0.704|0.691|0.686|0.710|0.696|
 | Trigram-Sequential-Softmax DED     |0.676|0.657|0.675|0.658|0.674|0.655|
 | Trigram-Sequential-Nonsoftmax DED |0.697|0.682|0.680|0.673|0.700|0.684|
-| Trigram-Intra-Softmax DED     |||||||
-| Trigram-Intra-Nonsoftmax DED |||||||
+| Trigram-Intra-Softmax DED     |0.683|0.665|0.681|0.664|0.679|0.661|
+| Trigram-Intra-Nonsoftmax DED |0.718|0.705|0.694|0.692|0.718|0.706|
 | Trigram-Sequential-Softmax-Add-1-Smooth DED |0.676|0.657|0.675|0.658|0.674|0.655|
 | Trigram-Sequential-Nonsoftmax-Add-1-Smooth DED |0.700|0.685|0.682|0.675|0.701|0.684|
-| Trigram-Intra-Softmax-Add-1-Smooth DED |||||||
-| Trigram-Intra-Nonsoftmax-Add-1-Smooth DED |||||||
+| Trigram-Intra-Softmax-Add-1-Smooth DED |0.683|0.664|0.682|0.665|0.679|0.660|
+| Trigram-Intra-Nonsoftmax-Add-1-Smooth DED |0.715|0.701|0.693|0.691|0.718|0.705|
 
 ## Oral Presentation
 [![IMAGE ALT TEXT](img/ICASSP20.png)](https://www.youtube.com/watch?v=Ti4foNyrvzo)
